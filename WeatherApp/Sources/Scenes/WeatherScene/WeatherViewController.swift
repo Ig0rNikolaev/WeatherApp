@@ -7,8 +7,14 @@
 
 import UIKit
 import SnapKit
+import RxSwift
+import RxCocoa
 
 final class WeatherViewController: UIViewController {
+    //: MARK: - Properties
+
+    private var viewModel: IWeatherViewModel
+    private let disposeBag = DisposeBag()
 
     //: MARK: - UI Elements
 
@@ -67,6 +73,7 @@ final class WeatherViewController: UIViewController {
     private lazy var weatherWeakTable: UITableView = {
         let tabel = UITableView(frame: .zero, style: .insetGrouped)
         tabel.register(WeatherCell.self, forCellReuseIdentifier: WeatherCell.identifier)
+        tabel.register(UITableViewHeaderFooterView.self, forHeaderFooterViewReuseIdentifier: "Header")
         tabel.dataSource = self
         tabel.delegate = self
         tabel.backgroundColor = .clear
@@ -90,17 +97,35 @@ final class WeatherViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupView()
         setupHierarchy()
         setupLayout()
+        setupBindings()
+        viewModel.bing()
+    }
+
+    //: MARK: - Initializers
+    
+    init(viewModel: IWeatherViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError()
     }
 
     //: MARK: - Setups
 
-    private func setupView() {
-
+    private func setupBindings() {
+        viewModel.cityName
+            .bind(to: cityNameLabel.rx.text)
+            .disposed(by: disposeBag)
+        
+        viewModel.temperature
+            .bind(to: temperatureLabel.rx.text)
+            .disposed(by: disposeBag)
     }
-
+    
     private func setupHierarchy() {
         let views = [backgroundImage,
                      searchCityField,
@@ -134,6 +159,8 @@ final class WeatherViewController: UIViewController {
     }
 }
 
+//: MARK: - Extensions
+
 extension WeatherViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         10
@@ -144,6 +171,10 @@ extension WeatherViewController: UITableViewDataSource {
                                                        for: indexPath) as? WeatherCell else { return UITableViewCell() }
         cell.createWeatherContent()
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        "Прогноз погоды на 10 дней"
     }
 }
 
