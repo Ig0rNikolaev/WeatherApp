@@ -12,7 +12,10 @@ import RxRelay
 protocol IWeatherViewModel {
     var cityName: BehaviorRelay<String> { get }
     var temperature: BehaviorRelay<String> { get }
+    var search: BehaviorRelay<String> { get set }
+    var city: BehaviorRelay<String> { get set }
     func bing()
+    func netUpdate()
 }
 
 class WeatherViewModel: IWeatherViewModel {
@@ -22,6 +25,8 @@ class WeatherViewModel: IWeatherViewModel {
     private let disposeBag = DisposeBag()
     var cityName = BehaviorRelay<String>(value: "")
     var temperature = BehaviorRelay<String>(value: "")
+    var search = BehaviorRelay<String>(value: "")
+    var city = BehaviorRelay<String>(value: "")
 
     //: MARK: - Initializers
 
@@ -33,6 +38,15 @@ class WeatherViewModel: IWeatherViewModel {
 
     func bing() {
         setupBindings()
+    }
+
+    func netUpdate() {
+        city
+            .bind(to: network.city)
+            .disposed(by: disposeBag)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            self.network.transportData()
+        }
     }
 
     func setupBindings() {

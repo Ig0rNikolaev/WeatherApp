@@ -30,6 +30,7 @@ final class WeatherViewController: UIViewController {
         text.placeholder = "Enter your city"
         text.backgroundColor = .white
         text.borderStyle = .roundedRect
+        text.addTarget(self, action: #selector(updateCity), for: .editingChanged)
         text.alpha = 0.7
         return text
     }()
@@ -115,6 +116,12 @@ final class WeatherViewController: UIViewController {
     }
 
     //: MARK: - Setups
+
+    @objc
+        func updateCity() {
+            self.viewModel.city.accept(self.searchCityField.text ?? "")
+            self.viewModel.netUpdate()
+        }
 
     private func setupBindings() {
         viewModel.cityName
