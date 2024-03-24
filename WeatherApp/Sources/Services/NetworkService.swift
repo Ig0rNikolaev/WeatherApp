@@ -8,77 +8,74 @@
 import UIKit
 import RxSwift
 import RxCocoa
-import CoreLocation
 
 protocol INetworkService {
-    func transportData()
-    var cityNetwork: BehaviorRelay<String> { get set }
-    var temperatureNetwork: BehaviorRelay<String> { get set }
-    var city: BehaviorRelay<String> { get set }
+    func transmitsDataFromNetwork()
+    func createImageData(url: URL, completion: @escaping (Data?) -> Void)
+    var currentСity: BehaviorRelay<String> { get set }
+    var listData: BehaviorRelay<[List]> { get set }
+    var weatherDto: BehaviorRelay<WeatherDto> { get set }
 }
 
 final class NetworkService: INetworkService {
-    let url: ICreateURL
-    var cityNetwork = BehaviorRelay<String>(value: "")
-    var temperatureNetwork = BehaviorRelay<String>(value: "")
-    var city = BehaviorRelay<String>(value: "No city")
+    private let url: ICreateURL
+    var currentСity = BehaviorRelay<String>(value: "")
+    var listData = BehaviorRelay<[List]>(value: [])
+    var weatherDto = BehaviorRelay<WeatherDto>(value: WeatherDto())
 
     init(url: ICreateURL) {
         self.url = url
     }
 
-    func transportData() {
+    func transmitsDataFromNetwork() {
         getData()
     }
 
-    private func getData() {
-         getWeather(httpMethod: "GET", type: WeatherModel.self) { result in
-             switch result {
-             case .success(let data):
-                 self.cityNetwork.accept(data.city?.name ?? "")
-                 print("Город: \(data.city?.name ?? "")")
-                 for day in data.list! {
-                     print("Температура: \(day.main?.temp ?? 0.0)")
-                     self.temperatureNetwork.accept("\(Int(day.main?.temp ?? 0.0))")
-                     print("Температура Мин: \(day.main?.tempMin ?? 0.0)")
-                     print("Температура Макс:\(day.main?.tempMax ?? 0.0)")
-                     print("Дата: \(self.dateFormatter(date: day.dt ?? Date()))")
-                     print("Картинка: \(String(describing: day.weather?[0].iconURL))")
-                     print("Описание погоды: \(day.weather?[0].description ?? "")")
-                     print("Осадки: \(day.weather?[0].main ?? "")")
-                     print("                                                                ")
-                 }
-             case .failure(let error):
-                 print("Error: \(error.localizedDescription)")
-             }
-         }
-     }
+    func createImageData(url: URL, completion: @escaping (Data?) -> Void) {
+        sendRequest(url: url, httpMethod: .get) { data in
+            completion(data)
+        }
+    }
 
-   private func getWeather<T: Codable>(httpMethod: String, type: T.Type, completion: @escaping(Result<T, Error>) -> Void) {
-        sendRequest(httpMethod: httpMethod) {  data in
+    private func getData() {
+        getWeather(httpMethod: .get, type: WeatherModel.self) { result in
+            switch result {
+            case .success(let data):
+                let weatherSetting = self.createWeatherDTO(from: data)
+                self.weatherDto.accept(weatherSetting)
+                self.listData.accept(data.list ?? [])
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+    }
+
+    private func createWeatherDTO(from data: WeatherModel) -> WeatherDto {
+        let weatherSetting = WeatherDto(city: data.city?.name,
+                                        temperature: data.list?.first?.main?.temp,
+                                        main: data.list?.first?.weather?.first?.main,
+                                        description: data.list?.first?.weather?.first?.description)
+        return weatherSetting
+    }
+
+    private func getWeather<T: Codable>(httpMethod: HttpMethod, type: T.Type, completion: @escaping(Result<T, Error>) -> Void) {
+        let url = self.url.createURL(city: currentСity.value)
+        sendRequest(url: url, httpMethod: httpMethod) {  data in
             if let parseData = self.parseData(from: data, type: type) {
                 completion(.success(parseData))
             }
         }
     }
 
-    private func sendRequest(httpMethod: String, completion: @escaping(Data) -> Void) {
-
-        CLGeocoder().geocodeAddressString(city.value) { (placemark, error) in
-            if let error = error {
-                print(error.localizedDescription)
+    private func sendRequest(url: URL?, httpMethod: HttpMethod, completion: @escaping(Data) -> Void) {
+        guard let url = url else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = httpMethod.rawValue
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            if let data {
+                completion(data)
             }
-            if let lat = placemark?.first?.location?.coordinate.latitude,
-               let lon = placemark?.first?.location?.coordinate.longitude {
-
-                let urlS = self.url.createURL(lat: lat, lon: lon)!
-                URLSession.shared.dataTask(with: urlS) { data, _, _ in
-                    if let data {
-                        completion(data)
-                    }
-                }.resume()
-            }
-        }
+        }.resume()
     }
 
     private func parseData<T: Codable>(from data: Data, type: T.Type) -> T? {
@@ -87,10 +84,4 @@ final class NetworkService: INetworkService {
         let data = try? decoder.decode(type.self, from: data)
         return data
     }
-
-    private func dateFormatter(date: Date) -> String {
-         let dateFormater = DateFormatter()
-         dateFormater.dateFormat = "E, MMM, d"
-         return dateFormater.string(from: date)
-     }
 }

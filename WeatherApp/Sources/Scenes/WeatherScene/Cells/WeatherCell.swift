@@ -10,6 +10,8 @@ import SnapKit
 
 fileprivate enum ConstantsCell {
     static let identifier = "\(Self.self)"
+    static let font: CGFloat = 15
+    static let inset: CGFloat = 10
 }
 
 final class WeatherCell: UITableViewCell {
@@ -19,37 +21,33 @@ final class WeatherCell: UITableViewCell {
 
     //: MARK: - UI Elements
 
-    private lazy var weatherImage: UIImageView = {
+     var weatherImage: UIImageView = {
         let image =  UIImageView()
-        image.image = UIImage(systemName: "sun.max")
         image.contentMode = .scaleAspectFit
         image.clipsToBounds = true
         image.tintColor = .black
         return image
     }()
 
-    private lazy var dayWeekLabel: UILabel = {
+     var dayWeekLabel: UILabel = {
         let label = UILabel()
-        label.text = "Today"
-        label.font = UIFont.preferredFont(forTextStyle: .headline).withSize(20)
+         label.font = UIFont.preferredFont(forTextStyle: .headline).withSize(ConstantsCell.font)
         label.textAlignment = .center
         label.textColor = .black
         return label
     }()
 
-    private lazy var temperatureCellLabel: UILabel = {
+    private lazy var tempMinCellLabel: UILabel = {
         let label = UILabel()
-        label.text = "25°"
-        label.font = UIFont.preferredFont(forTextStyle: .body).withSize(20)
+        label.font = UIFont.preferredFont(forTextStyle: .headline).withSize(ConstantsCell.font)
         label.textAlignment = .center
         label.textColor = .black
         return label
     }()
 
     private lazy var weatherStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [temperatureCellLabel, weatherImage])
+        let stack = UIStackView(arrangedSubviews: [dayWeekLabel, weatherImage, tempMinCellLabel])
         stack.axis = .horizontal
-        stack.spacing = 10
         stack.alignment = .fill
         stack.distribution = .fillProportionally
         return stack
@@ -73,31 +71,24 @@ final class WeatherCell: UITableViewCell {
         super.prepareForReuse()
         dayWeekLabel.text = nil
         weatherImage.image = nil
-        temperatureCellLabel.text = nil
+        tempMinCellLabel.text = nil
     }
 
     private func setupHierarchy() {
-        let views = [dayWeekLabel, weatherStack]
-        contentView.addViews(views)
+        contentView.addSubview(weatherStack)
     }
 
     private func setupLayout() {
-        dayWeekLabel.snp.makeConstraints { make in
-            make.centerY.equalToSuperview()
-            make.left.equalTo(20)
-        }
-
         weatherStack.snp.makeConstraints { make in
             make.centerY.equalToSuperview()
-            make.right.equalTo(-20)
-            make.height.equalTo(40)
-            make.width.equalTo(110)
+            make.left.right.equalToSuperview().inset(ConstantsCell.inset)
+            make.height.equalToSuperview()
         }
     }
 
-    func createWeatherContent() {
-        dayWeekLabel.text = "Today"
-        weatherImage.image =  UIImage(systemName: "sun.max")
-        temperatureCellLabel.text = "25°"
+    func createWeatherContent(from weather: ListDTo) {
+        dayWeekLabel.text = weather.date
+        weatherImage.image =  UIImage(data: weather.image ?? Data())
+        tempMinCellLabel.text = "Макс.: \(weather.max ?? 0)° | Мин.: \(weather.min ?? 0)°"
     }
 }
