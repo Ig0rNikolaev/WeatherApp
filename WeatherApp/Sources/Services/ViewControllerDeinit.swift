@@ -12,7 +12,6 @@ class ViewControllerDeinit: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .blue
-
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Button", style: .done, target: self, action: #selector(tap))
     }
 

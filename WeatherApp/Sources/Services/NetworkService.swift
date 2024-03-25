@@ -7,11 +7,11 @@
 
 import UIKit
 import RxSwift
-import RxCocoa
+import RxRelay
 
 protocol INetworkService {
-    func transmitsDataFromNetwork()
     func createImageData(url: URL, completion: @escaping (Data?) -> Void)
+    func transmitsDataFromNetwork(completion: @escaping () -> Void)
     var currentСity: BehaviorRelay<String> { get set }
     var listData: BehaviorRelay<[List]> { get set }
     var weatherDto: BehaviorRelay<WeatherDto> { get set }
@@ -19,7 +19,7 @@ protocol INetworkService {
 
 final class NetworkService: INetworkService {
     private let url: ICreateURL
-    var currentСity = BehaviorRelay<String>(value: "")
+    var currentСity = BehaviorRelay<String>(value: Constant.Default.city)
     var listData = BehaviorRelay<[List]>(value: [])
     var weatherDto = BehaviorRelay<WeatherDto>(value: WeatherDto())
 
@@ -27,8 +27,8 @@ final class NetworkService: INetworkService {
         self.url = url
     }
 
-    func transmitsDataFromNetwork() {
-        getData()
+    func transmitsDataFromNetwork(completion: @escaping () -> Void) {
+        getData(completion: completion)
     }
 
     func createImageData(url: URL, completion: @escaping (Data?) -> Void) {
@@ -37,13 +37,14 @@ final class NetworkService: INetworkService {
         }
     }
 
-    private func getData() {
+    private func getData(completion: @escaping () -> Void) {
         getWeather(httpMethod: .get, type: WeatherModel.self) { result in
             switch result {
             case .success(let data):
                 let weatherSetting = self.createWeatherDTO(from: data)
                 self.weatherDto.accept(weatherSetting)
                 self.listData.accept(data.list ?? [])
+                completion()
             case .failure(let error):
                 print(error.localizedDescription)
             }
@@ -58,11 +59,13 @@ final class NetworkService: INetworkService {
         return weatherSetting
     }
 
-    private func getWeather<T: Codable>(httpMethod: HttpMethod, type: T.Type, completion: @escaping(Result<T, Error>) -> Void) {
+    private func getWeather<T: Codable>(httpMethod: HttpMethod, type: T.Type, completion: @escaping(Result<T, NetworkError>) -> Void) {
         let url = self.url.createURL(city: currentСity.value)
-        sendRequest(url: url, httpMethod: httpMethod) {  data in
+        sendRequest(url: url, httpMethod: httpMethod) { data in
             if let parseData = self.parseData(from: data, type: type) {
                 completion(.success(parseData))
+            } else {
+                completion(.failure(.decoding(nil)))
             }
         }
     }

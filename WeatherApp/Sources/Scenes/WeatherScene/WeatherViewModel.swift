@@ -6,11 +6,11 @@
 //
 
 import RxSwift
-import RxCocoa
 import RxRelay
 
 private extension String {
     static let dateFormat = "EE, d"
+    static let cityDefault = ""
 }
 
 private extension Double {
@@ -19,10 +19,10 @@ private extension Double {
 }
 
 protocol IWeatherViewModel {
+    func updateWeatherData(for city: String)
+    var listDTo: BehaviorRelay<[ListDTo]> { get set }
     var currentСity: BehaviorRelay<String> { get set }
-    var listDTo: BehaviorRelay<[ListDTo]?> { get set }
     var weatherDto: BehaviorRelay<WeatherDto> { get set }
-    func updatesCurrentСity()
 }
 
 class WeatherViewModel: IWeatherViewModel {
@@ -30,10 +30,9 @@ class WeatherViewModel: IWeatherViewModel {
 
     private let network: INetworkService
     private let disposeBag = DisposeBag()
-
-    var currentСity = BehaviorRelay<String>(value: "")
-    var listDTo = BehaviorRelay<[ListDTo]?>(value: [])
     var listData = BehaviorRelay<[List]>(value: [])
+    var listDTo = BehaviorRelay<[ListDTo]>(value: [])
+    var currentСity = BehaviorRelay<String>(value: .cityDefault)
     var weatherDto = BehaviorRelay<WeatherDto>(value: WeatherDto())
 
     //: MARK: - Initializers
@@ -45,34 +44,42 @@ class WeatherViewModel: IWeatherViewModel {
 
     //: MARK: - Setups
 
-    func updatesCurrentСity() {
-        currentСity
-            .bind(to: network.currentСity)
-            .disposed(by: disposeBag)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
-            self?.network.transmitsDataFromNetwork()
-            self?.updatesWeeklyWeatherForecast()
+    func updateWeatherData(for city: String) {
+        if city.isEmpty {
+            listDTo.accept([])
+        } else {
+            currentСity.accept(city)
+            updatesCurrentСity()
         }
     }
 
-   private func setupBindings() {
+    private func updatesCurrentСity() {
+        currentСity
+            .bind(to: network.currentСity)
+            .disposed(by: disposeBag)
+
+        self.network.transmitsDataFromNetwork {
+            self.updatesWeeklyWeatherForecast()
+        }
+    }
+
+    private func setupBindings() {
         network.weatherDto.subscribe { [weak self] event in
-            if let userName = event.element {
-                self?.weatherDto.accept(userName)
+            if let weather = event.element {
+                self?.weatherDto.accept(weather)
             }
         }.disposed(by: disposeBag)
 
         network.listData.subscribe { [weak self] event in
-            if let listEvent = event.element {
-                self?.listData.accept(listEvent)
+            if let list = event.element {
+                self?.listData.accept(list)
             }
         }.disposed(by: disposeBag)
     }
 
     private func updatesWeeklyWeatherForecast() {
-        var weatherDictionary: [String: List] = [:]
         var weatherList: [ListDTo] = []
+        var weatherDictionary: [String: List] = [:]
 
         for day in listData.value {
             let date = self.dateFormatter(date: day.dt ?? Date())

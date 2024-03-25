@@ -13,6 +13,7 @@
 		DB11F4032BB1C0EA006D05FB /* ListDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB11F4022BB1C0EA006D05FB /* ListDTO.swift */; };
 		DB3AF2862BB1FB7400772837 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3AF2852BB1FB7400772837 /* Constant.swift */; };
 		DB3AF2882BB203B600772837 /* HttpMethod.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3AF2872BB203B600772837 /* HttpMethod.swift */; };
+		DB3AF28E2BB350D000772837 /* NetworkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3AF28D2BB350D000772837 /* NetworkError.swift */; };
 		DB7ECB642BAC3FE7001A7372 /* WeatherModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7ECB632BAC3FE7001A7372 /* WeatherModel.swift */; };
 		DB7ECB6D2BAC702F001A7372 /* WeatherViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7ECB6C2BAC702F001A7372 /* WeatherViewModel.swift */; };
 		DB7ECB722BACA2CC001A7372 /* CreateURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7ECB712BACA2CC001A7372 /* CreateURL.swift */; };
@@ -34,6 +35,7 @@
 		DB11F4022BB1C0EA006D05FB /* ListDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListDTO.swift; sourceTree = "<group>"; };
 		DB3AF2852BB1FB7400772837 /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
 		DB3AF2872BB203B600772837 /* HttpMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpMethod.swift; sourceTree = "<group>"; };
+		DB3AF28D2BB350D000772837 /* NetworkError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkError.swift; sourceTree = "<group>"; };
 		DB7ECB632BAC3FE7001A7372 /* WeatherModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherModel.swift; sourceTree = "<group>"; };
 		DB7ECB6C2BAC702F001A7372 /* WeatherViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherViewModel.swift; sourceTree = "<group>"; };
 		DB7ECB712BACA2CC001A7372 /* CreateURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateURL.swift; sourceTree = "<group>"; };
@@ -185,8 +187,9 @@
 			isa = PBXGroup;
 			children = (
 				DBB768A12BAA039800E39574 /* NetworkService.swift */,
-				DB7ECB712BACA2CC001A7372 /* CreateURL.swift */,
+				DB3AF28D2BB350D000772837 /* NetworkError.swift */,
 				DB3AF2872BB203B600772837 /* HttpMethod.swift */,
+				DB7ECB712BACA2CC001A7372 /* CreateURL.swift */,
 				DB11F3FC2BB1B848006D05FB /* ViewControllerDeinit.swift */,
 			);
 			path = Services;
@@ -327,6 +330,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DB11F4032BB1C0EA006D05FB /* ListDTO.swift in Sources */,
+				DB3AF28E2BB350D000772837 /* NetworkError.swift in Sources */,
 				DB7ECB722BACA2CC001A7372 /* CreateURL.swift in Sources */,
 				DBF3C7182BA9CE9000FDCAEE /* WeatherViewController.swift in Sources */,
 				DBF3C7142BA9CE9000FDCAEE /* AppDelegate.swift in Sources */,

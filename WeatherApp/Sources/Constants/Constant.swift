@@ -16,4 +16,8 @@ final class Constant {
         static let top: CGFloat = 20
         static let leftRight: CGFloat = 20
     }
+
+    enum Default {
+        static let city = ""
+    }
 }
