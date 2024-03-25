@@ -7,23 +7,40 @@
 
 import Foundation
 
+private extension String {
+    static let key = "6cbbb4eeff5ee35fb1777767f16b2885"
+    static let scheme = "https"
+    static let host = "api.openweathermap.org"
+    static let path = "/data/2.5/forecast"
+    static let city = "q"
+    static let appid = "appid"
+    static let lang = "lang"
+    static let units = "units"
+    static let ru = "ru"
+    static let metric = "metric"
+}
+
 protocol ICreateURL {
-    func createURL() -> URL?
+    func createURL(city: String) -> URL?
 }
 
 class CreateURL: ICreateURL {
-    func createURL() -> URL? {
-        let key = "244e992eec685bcdc922c11c5223e183"
+    func createURL(city: String) -> URL? {
+        let key: String = .key
         var components = URLComponents()
-        components.scheme = "https"
-        components.host = "api.openweathermap.org"
-        components.path = "/data/2.5/weather"
-        
+        components.scheme = .scheme
+        components.host = .host
+        components.path = .path
         components.queryItems = [
-            URLQueryItem(name: "q", value: "London"),
-            URLQueryItem(name: "appid", value: key),
-            URLQueryItem(name: "units", value: "metric"),
+            URLQueryItem(name: .city, value: city),
+            URLQueryItem(name: .appid, value: key),
+            URLQueryItem(name: .lang, value: .ru),
+            URLQueryItem(name: .units, value: .metric),
         ]
         return components.url
+    }
+
+    deinit {
+        print("deinit CreateURL")
     }
 }
