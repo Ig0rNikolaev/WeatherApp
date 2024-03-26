@@ -10,18 +10,15 @@ import RxSwift
 import RxRelay
 
 protocol INetworkService {
-    func createImageData(url: URL, completion: @escaping (Data?) -> Void)
+    func createImageData(icon: List, completion: @escaping (Data?) -> Void)
     func transmitsDataFromNetwork(completion: @escaping () -> Void)
-    var currentСity: BehaviorRelay<String> { get set }
-    var listData: BehaviorRelay<[List]> { get set }
-    var weatherDto: BehaviorRelay<WeatherDto> { get set }
+    var networkCustom: NetworkCustom { get set }
 }
 
 final class NetworkService: INetworkService {
     private let url: ICreateURL
-    var currentСity = BehaviorRelay<String>(value: Constant.Default.city)
-    var listData = BehaviorRelay<[List]>(value: [])
-    var weatherDto = BehaviorRelay<WeatherDto>(value: WeatherDto())
+    var networkCustom = NetworkCustom()
+
 
     init(url: ICreateURL) {
         self.url = url
@@ -31,7 +28,8 @@ final class NetworkService: INetworkService {
         getData(completion: completion)
     }
 
-    func createImageData(url: URL, completion: @escaping (Data?) -> Void) {
+    func createImageData(icon: List, completion: @escaping (Data?) -> Void) {
+        let url = self.url.imageURL(image: icon.weather?.first?.icon ?? Constant.Default.icon)
         sendRequest(url: url, httpMethod: .get) { data in
             completion(data)
         }
@@ -42,8 +40,8 @@ final class NetworkService: INetworkService {
             switch result {
             case .success(let data):
                 let weatherSetting = self.createWeatherDTO(from: data)
-                self.weatherDto.accept(weatherSetting)
-                self.listData.accept(data.list ?? [])
+                self.networkCustom.weatherDto.accept(weatherSetting)
+                self.networkCustom.listData.accept(data.list ?? [])
                 completion()
             case .failure(let error):
                 print(error.localizedDescription)
@@ -60,7 +58,7 @@ final class NetworkService: INetworkService {
     }
 
     private func getWeather<T: Codable>(httpMethod: HttpMethod, type: T.Type, completion: @escaping(Result<T, NetworkError>) -> Void) {
-        let url = self.url.createURL(city: currentСity.value)
+        let url = self.url.createURL(city: networkCustom.currentСity.value)
         sendRequest(url: url, httpMethod: httpMethod) { data in
             if let parseData = self.parseData(from: data, type: type) {
                 completion(.success(parseData))

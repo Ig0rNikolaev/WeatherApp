@@ -10,7 +10,6 @@ import RxRelay
 
 private extension String {
     static let dateFormat = "EE, d"
-    static let cityDefault = ""
 }
 
 private extension Double {
@@ -20,9 +19,7 @@ private extension Double {
 
 protocol IWeatherViewModel {
     func updateWeatherData(for city: String)
-    var listDTo: BehaviorRelay<[ListDTo]> { get set }
-    var currentСity: BehaviorRelay<String> { get set }
-    var weatherDto: BehaviorRelay<WeatherDto> { get set }
+    var weatherCustom: WeatherDataCustom { get set }
 }
 
 class WeatherViewModel: IWeatherViewModel {
@@ -30,10 +27,7 @@ class WeatherViewModel: IWeatherViewModel {
 
     private let network: INetworkService
     private let disposeBag = DisposeBag()
-    var listData = BehaviorRelay<[List]>(value: [])
-    var listDTo = BehaviorRelay<[ListDTo]>(value: [])
-    var currentСity = BehaviorRelay<String>(value: .cityDefault)
-    var weatherDto = BehaviorRelay<WeatherDto>(value: WeatherDto())
+    var weatherCustom = WeatherDataCustom()
 
     //: MARK: - Initializers
 
@@ -46,16 +40,16 @@ class WeatherViewModel: IWeatherViewModel {
 
     func updateWeatherData(for city: String) {
         if city.isEmpty {
-            listDTo.accept([])
+            weatherCustom.listDTo.accept([])
         } else {
-            currentСity.accept(city)
+            weatherCustom.currentСity.accept(city)
             updatesCurrentСity()
         }
     }
 
     private func updatesCurrentСity() {
-        currentСity
-            .bind(to: network.currentСity)
+        weatherCustom.currentСity
+            .bind(to: network.networkCustom.currentСity)
             .disposed(by: disposeBag)
 
         self.network.transmitsDataFromNetwork {
@@ -64,15 +58,15 @@ class WeatherViewModel: IWeatherViewModel {
     }
 
     private func setupBindings() {
-        network.weatherDto.subscribe { [weak self] event in
+        network.networkCustom.weatherDto.subscribe { [weak self] event in
             if let weather = event.element {
-                self?.weatherDto.accept(weather)
+                self?.weatherCustom.weatherDto.accept(weather)
             }
         }.disposed(by: disposeBag)
 
-        network.listData.subscribe { [weak self] event in
+        network.networkCustom.listData.subscribe { [weak self] event in
             if let list = event.element {
-                self?.listData.accept(list)
+                self?.weatherCustom.listData.accept(list)
             }
         }.disposed(by: disposeBag)
     }
@@ -81,29 +75,27 @@ class WeatherViewModel: IWeatherViewModel {
         var weatherList: [ListDTo] = []
         var weatherDictionary: [String: List] = [:]
 
-        for day in listData.value {
+        for day in weatherCustom.listData.value {
             let date = self.dateFormatter(date: day.dt ?? Date())
             guard weatherDictionary[date] == nil else { continue }
             weatherDictionary[date] = day
 
-            let minMaxTemp = self.calculatesTemperatureRange(for: day.dt)
-            guard let urlImage = day.weather?.first?.iconURL else { return }
-            network.createImageData(url: urlImage) { data in
+            network.createImageData(icon: day) { data in
                 let weatherDTO = ListDTo(date: date,
-                                         min: minMaxTemp.min,
-                                         max:  minMaxTemp.max,
+                                         min: self.temperatureRange(for: day.dt).min,
+                                         max: self.temperatureRange(for: day.dt).max,
                                          image: data ?? Data())
                 weatherList.append(weatherDTO)
-                self.listDTo.accept(weatherList)
+                self.weatherCustom.listDTo.accept(weatherList)
             }
         }
     }
 
-    private func calculatesTemperatureRange(for day: Date?) -> (min: Int, max: Int) {
+    private func temperatureRange(for day: Date?) -> (min: Int, max: Int) {
         var minTemp: Double = .minTemp.rounded()
         var maxTemp: Double = .maxTemp.rounded()
 
-        for days in listData.value {
+        for days in weatherCustom.listData.value {
             guard let hourlyDate = days.dt else { continue }
             if Calendar.current.isDate(hourlyDate, inSameDayAs: day ?? Date()) {
                 if let temperature = days.main?.temp {

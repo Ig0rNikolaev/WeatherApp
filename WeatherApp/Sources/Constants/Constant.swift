@@ -19,5 +19,6 @@ final class Constant {
 
     enum Default {
         static let city = ""
+        static let icon = ""
     }
 }
