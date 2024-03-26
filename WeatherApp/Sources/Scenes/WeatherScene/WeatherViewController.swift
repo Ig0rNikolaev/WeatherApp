@@ -6,13 +6,15 @@
 //
 
 import UIKit
-import SnapKit
 import RxSwift
 import RxCocoa
+import SnapKit
+import CoreLocation
 
 private extension String {
     static let backgroundImage = "background"
     static let placeholder = "Enter your city"
+    static let clear = ""
 }
 
 private extension CGFloat {
@@ -22,9 +24,16 @@ private extension CGFloat {
     static let stackSpacing: CGFloat = 5
 }
 
+private extension Int {
+    static let second = 1
+}
+
 fileprivate enum ConstantsWeather {
     static let searchHeight: CGFloat = 45
     static let stackHeight: CGFloat = 250
+
+    static let replacingDash = "-"
+    static let replacingSpace = " "
 }
 
 final class WeatherViewController: UIViewController {
@@ -32,7 +41,6 @@ final class WeatherViewController: UIViewController {
 
     private var viewModel: IWeatherViewModel
     private let disposeBag = DisposeBag()
-    private var listWeather: [ListDTo] = []
 
     //: MARK: - UI Elements
 
@@ -48,6 +56,7 @@ final class WeatherViewController: UIViewController {
         text.placeholder = .placeholder
         text.backgroundColor = .white
         text.borderStyle = .roundedRect
+        text.clearButtonMode = .always
         text.alpha = Constant.Alpha.alpha
         return text
     }()
@@ -79,9 +88,9 @@ final class WeatherViewController: UIViewController {
     private lazy var weatherWeakTable: UITableView = {
         let tabel = UITableView(frame: .zero, style: .insetGrouped)
         tabel.register(WeatherCell.self, forCellReuseIdentifier: WeatherCell.identifier)
-        tabel.dataSource = self
-        tabel.backgroundColor = .clear
+        tabel.rx.setDelegate(self).disposed(by: disposeBag)
         tabel.alpha = Constant.Alpha.alpha
+        tabel.backgroundColor = .clear
         return tabel
     }()
 
@@ -96,6 +105,14 @@ final class WeatherViewController: UIViewController {
         return stack
     }()
 
+    private lazy var manager: CLLocationManager = {
+        let manager =  CLLocationManager()
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.requestWhenInUseAuthorization()
+        manager.startUpdatingLocation()
+        return manager
+    }()
+
     //: MARK: - Lifecycle
 
     override func viewDidLoad() {
@@ -103,6 +120,11 @@ final class WeatherViewController: UIViewController {
         setupHierarchy()
         setupLayout()
         setupBindings()
+        locationManagerDelegate()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         updateCity()
     }
 
@@ -119,36 +141,52 @@ final class WeatherViewController: UIViewController {
 
     //: MARK: - Setups
 
-    private func updateCity() {
-        searchCityField.rx.controlEvent(.editingChanged)
-            .subscribe(onNext: { [weak self] in
-                if let text = self?.searchCityField.text {
-                    self?.viewModel.currentСity.accept(text)
-                    self?.viewModel.updatesCurrentСity()
-                }
-            })
-            .disposed(by: disposeBag)
+    private func locationManagerDelegate() {
+        manager.delegate = self
     }
 
     private func setupBindings() {
-        viewModel.listDTo
-            .subscribe(onNext: { [weak self] list in
-                DispatchQueue.main.async {
-                    self?.listWeather = list ?? []
-                    self?.weatherWeakTable.reloadData()
-                }
-            })
-            .disposed(by: disposeBag)
+        viewModel.listDTo.bind(to: weatherWeakTable
+            .rx.items(cellIdentifier: WeatherCell.identifier,
+                      cellType: WeatherCell.self)) { _, item, cell in
+            cell.createWeatherContent(from: item)
+        }.disposed(by: disposeBag)
 
         viewModel.weatherDto
-            .subscribe(onNext: { [weak self] user in
-                DispatchQueue.main.async {
-                    self?.cityNameLabel.text = user.city ?? ""
-                    self?.temperatureLabel.text = "\(Int(user.temperature?.rounded() ?? 0.0))"
-                    self?.descriptionLabel.text = user.description?.capitalized
+            .subscribe { [weak self] event in
+                self?.updateWeatherData(event: event)
+            }.disposed(by: disposeBag)
+    }
+
+    private func updateCity() {
+        searchCityField.rx.text.orEmpty
+            .debounce(.seconds(.second), scheduler: MainScheduler.instance)
+            .distinctUntilChanged()
+            .subscribe { [weak self] text in
+                if !text.isEmpty {
+                    self?.viewModel.updateWeatherData(for: text.replacingOccurrences(of: ConstantsWeather.replacingDash,
+                                                                                     with: ConstantsWeather.replacingSpace))
+                } else {
+                    self?.clearWeatherData()
                 }
-            })
-            .disposed(by: disposeBag)
+            }.disposed(by: disposeBag)
+    }
+
+    private func updateWeatherData(event: WeatherDto) {
+        DispatchQueue.main.async {
+            self.cityNameLabel.text = event.city ?? Constant.Default.city
+            self.descriptionLabel.text = event.description?.capitalized
+            if let temp = event.temperature?.rounded() {
+                self.temperatureLabel.text = "\(Int(temp))"
+            }
+        }
+    }
+
+    private func clearWeatherData() {
+        cityNameLabel.text = .clear
+        temperatureLabel.text = .clear
+        descriptionLabel.text = .clear
+        viewModel.listDTo.accept([])
     }
 
     private func setupHierarchy() {
@@ -190,15 +228,17 @@ final class WeatherViewController: UIViewController {
 
 //: MARK: - Extensions
 
-extension WeatherViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        listWeather.count
-    }
+extension WeatherViewController: CLLocationManagerDelegate, UIScrollViewDelegate {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        manager.stopUpdatingLocation()
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: WeatherCell.identifier,
-                                                       for: indexPath) as? WeatherCell else { return UITableViewCell() }
-        cell.createWeatherContent(from: listWeather[indexPath.row])
-        return cell
+        let geocoder = CLGeocoder()
+        geocoder.reverseGeocodeLocation(location) { [weak self] (placemarks, _) in
+            guard let placemark = placemarks?.first else { return }
+            if let city = placemark.locality {
+                self?.viewModel.updateWeatherData(for: city)
+            }
+        }
     }
 }

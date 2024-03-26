@@ -20,7 +20,7 @@ struct City: Codable {
 }
 
 // MARK: - List
-struct List: Codable {    
+struct List: Codable {
     let dt: Date?
     let main: MainClass?
     let weather: [Weather]?
@@ -41,7 +41,7 @@ struct Weather: Codable {
     let main: String?
     let description: String?
     let icon: String?
-    
+
     var iconURL: URL {
         guard let url = URL(string: "https://openweathermap.org/img/wn/\(icon ?? "")@2x.png") else { return URL(fileURLWithPath: "") }
         return url
