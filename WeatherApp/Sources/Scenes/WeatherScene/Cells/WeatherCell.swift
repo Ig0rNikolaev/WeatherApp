@@ -12,6 +12,9 @@ fileprivate enum ConstantsCell {
     static let identifier = "\(Self.self)"
     static let font: CGFloat = 15
     static let inset: CGFloat = 10
+    static func weatherTemperature(max: Int?, min: Int?) -> String {
+            return "Макс.: \(max ?? 0)° | Мин.: \(min ?? 0)°"
+        }
 }
 
 final class WeatherCell: UITableViewCell {
@@ -21,7 +24,7 @@ final class WeatherCell: UITableViewCell {
 
     //: MARK: - UI Elements
 
-     var weatherImage: UIImageView = {
+    var weatherImage: UIImageView = {
         let image =  UIImageView()
         image.contentMode = .scaleAspectFit
         image.clipsToBounds = true
@@ -29,9 +32,10 @@ final class WeatherCell: UITableViewCell {
         return image
     }()
 
-     var dayWeekLabel: UILabel = {
+    var dayWeekLabel: UILabel = {
         let label = UILabel()
-         label.font = UIFont.preferredFont(forTextStyle: .headline).withSize(ConstantsCell.font)
+        label.font = UIFont.preferredFont(forTextStyle: .headline)
+            .withSize(ConstantsCell.font)
         label.textAlignment = .center
         label.textColor = .black
         return label
@@ -39,14 +43,17 @@ final class WeatherCell: UITableViewCell {
 
     private lazy var tempMinCellLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .headline).withSize(ConstantsCell.font)
+        label.font = UIFont.preferredFont(forTextStyle: .headline)
+            .withSize(ConstantsCell.font)
         label.textAlignment = .center
         label.textColor = .black
         return label
     }()
 
     private lazy var weatherStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [dayWeekLabel, weatherImage, tempMinCellLabel])
+        let stack = UIStackView(arrangedSubviews: [dayWeekLabel, 
+                                                   weatherImage,
+                                                   tempMinCellLabel])
         stack.axis = .horizontal
         stack.alignment = .fill
         stack.distribution = .fillProportionally
@@ -60,7 +67,7 @@ final class WeatherCell: UITableViewCell {
         setupHierarchy()
         setupLayout()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError()
     }
@@ -89,6 +96,6 @@ final class WeatherCell: UITableViewCell {
     func createWeatherContent(from weather: ListDTo) {
         dayWeekLabel.text = weather.date
         weatherImage.image =  UIImage(data: weather.image ?? Data())
-        tempMinCellLabel.text = "Макс.: \(weather.max ?? 0)° | Мин.: \(weather.min ?? 0)°"
+        tempMinCellLabel.text = ConstantsCell.weatherTemperature(max: weather.max, min: weather.min)
     }
 }

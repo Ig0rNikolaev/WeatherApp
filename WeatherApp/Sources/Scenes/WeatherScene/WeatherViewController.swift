@@ -18,7 +18,7 @@ private extension String {
 }
 
 private extension CGFloat {
-    static let fontCity: CGFloat = 50
+    static let fontCity: CGFloat = 35
     static let fontTemperature: CGFloat = 100
     static let fontDescription: CGFloat = 25
     static let stackSpacing: CGFloat = 5
@@ -146,13 +146,13 @@ final class WeatherViewController: UIViewController {
     }
 
     private func setupBindings() {
-        viewModel.listDTo.bind(to: weatherWeakTable
+        viewModel.weatherCustom.listDTo.bind(to: weatherWeakTable
             .rx.items(cellIdentifier: WeatherCell.identifier,
                       cellType: WeatherCell.self)) { _, item, cell in
             cell.createWeatherContent(from: item)
         }.disposed(by: disposeBag)
 
-        viewModel.weatherDto
+        viewModel.weatherCustom.weatherDto
             .subscribe { [weak self] event in
                 self?.updateWeatherData(event: event)
             }.disposed(by: disposeBag)
@@ -186,7 +186,7 @@ final class WeatherViewController: UIViewController {
         cityNameLabel.text = .clear
         temperatureLabel.text = .clear
         descriptionLabel.text = .clear
-        viewModel.listDTo.accept([])
+        viewModel.weatherCustom.listDTo.accept([])
     }
 
     private func setupHierarchy() {
@@ -219,10 +219,6 @@ final class WeatherViewController: UIViewController {
             make.top.equalTo(weatherStack.snp.bottom).offset(Constant.Offset.top)
             make.left.right.bottom.equalToSuperview()
         }
-    }
-
-    deinit {
-        print("deinit VC")
     }
 }
 
