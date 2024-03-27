@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		70CD687E607B465018E69CDF /* Pods_WeatherApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3074B3EF9CEB71A8445B270 /* Pods_WeatherApp.framework */; };
-		DB11F3FD2BB1B848006D05FB /* ViewControllerDeinit.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB11F3FC2BB1B848006D05FB /* ViewControllerDeinit.swift */; };
 		DB11F4012BB1C0CC006D05FB /* WeathersDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB11F4002BB1C0CC006D05FB /* WeathersDTO.swift */; };
 		DB11F4032BB1C0EA006D05FB /* ListDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB11F4022BB1C0EA006D05FB /* ListDTO.swift */; };
 		DB3AF2862BB1FB7400772837 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3AF2852BB1FB7400772837 /* Constant.swift */; };
@@ -32,7 +31,6 @@
 
 /* Begin PBXFileReference section */
 		7BD564F030C145E7C0041C76 /* Pods-WeatherApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WeatherApp.debug.xcconfig"; path = "Target Support Files/Pods-WeatherApp/Pods-WeatherApp.debug.xcconfig"; sourceTree = "<group>"; };
-		DB11F3FC2BB1B848006D05FB /* ViewControllerDeinit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerDeinit.swift; sourceTree = "<group>"; };
 		DB11F4002BB1C0CC006D05FB /* WeathersDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeathersDTO.swift; sourceTree = "<group>"; };
 		DB11F4022BB1C0EA006D05FB /* ListDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListDTO.swift; sourceTree = "<group>"; };
 		DB3AF2852BB1FB7400772837 /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
@@ -121,6 +119,17 @@
 			path = Cells;
 			sourceTree = "<group>";
 		};
+		DB965AD72BB41EA500A1A561 /* NetworkService */ = {
+			isa = PBXGroup;
+			children = (
+				DBB768A12BAA039800E39574 /* NetworkService.swift */,
+				DB3AF28D2BB350D000772837 /* NetworkError.swift */,
+				DB3AF2872BB203B600772837 /* HttpMethod.swift */,
+				DB7ECB712BACA2CC001A7372 /* CreateURL.swift */,
+			);
+			name = NetworkService;
+			sourceTree = "<group>";
+		};
 		DBB7689C2BA9E63C00E39574 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -192,11 +201,7 @@
 		DBF3C72A2BA9D14900FDCAEE /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				DBB768A12BAA039800E39574 /* NetworkService.swift */,
-				DB3AF28D2BB350D000772837 /* NetworkError.swift */,
-				DB3AF2872BB203B600772837 /* HttpMethod.swift */,
-				DB7ECB712BACA2CC001A7372 /* CreateURL.swift */,
-				DB11F3FC2BB1B848006D05FB /* ViewControllerDeinit.swift */,
+				DB965AD72BB41EA500A1A561 /* NetworkService */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -344,7 +349,6 @@
 				DBB768A02BA9F75F00E39574 /* WeatherCell.swift in Sources */,
 				DB3AF2882BB203B600772837 /* HttpMethod.swift in Sources */,
 				DB7ECB742BACA441001A7372 /* WeatherAssembly.swift in Sources */,
-				DB11F3FD2BB1B848006D05FB /* ViewControllerDeinit.swift in Sources */,
 				DB3AF2862BB1FB7400772837 /* Constant.swift in Sources */,
 				DB7ECB642BAC3FE7001A7372 /* WeatherModel.swift in Sources */,
 				DB3AF2912BB36A3500772837 /* NetworkCustom.swift in Sources */,

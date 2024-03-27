@@ -52,8 +52,4 @@ class CreateURL: ICreateURL {
         components.path += "\(image + .png)"
         return components.url
     }
-
-    deinit {
-        print("deinit CreateURL")
-    }
 }

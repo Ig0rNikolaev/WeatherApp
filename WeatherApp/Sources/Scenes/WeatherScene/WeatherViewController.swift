@@ -220,10 +220,6 @@ final class WeatherViewController: UIViewController {
             make.left.right.bottom.equalToSuperview()
         }
     }
-
-    deinit {
-        print("deinit VC")
-    }
 }
 
 //: MARK: - Extensions
