@@ -159,8 +159,8 @@
 		DBF3C7122BA9CE9000FDCAEE /* WeatherApp */ = {
 			isa = PBXGroup;
 			children = (
-				DBF3C7272BA9CFA200FDCAEE /* Sources */,
 				DBF3C7282BA9CFE900FDCAEE /* Resources */,
+				DBF3C7272BA9CFA200FDCAEE /* Sources */,
 			);
 			path = WeatherApp;
 			sourceTree = "<group>";

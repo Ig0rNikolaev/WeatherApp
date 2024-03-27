@@ -114,8 +114,4 @@ class WeatherViewModel: IWeatherViewModel {
         dateFormater.dateFormat = .dateFormat
         return dateFormater.string(from: date)
     }
-
-    deinit {
-        print("deinit VM")
-    }
 }
